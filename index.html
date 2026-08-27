@@ -1,0 +1,713 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --paper:#ffffff;
+    --canvas:#fafaf9;
+    --line:#e5e3e0;
+    --line-strong:#d4d1cc;
+    --ink:#1c1b19;
+    --ink-soft:#6b6862;
+    --accent:#d9622b;
+    --accent-soft:#f4e3d8;
+    --ok:#2f8f5b;
+  }
+  *{box-sizing:border-box;}
+  .qrf-root{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter','Segoe UI',sans-serif;
+    padding:0;
+    min-height:100%;
+    border-radius:12px;
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .qrf-topbar{
+    display:flex;align-items:baseline;justify-content:space-between;
+    padding:24px 28px;
+    border-bottom:1px solid var(--line);
+    background:var(--paper);
+  }
+  .qrf-wordmark{
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:-0.3px;
+    color:var(--ink);
+  }
+  .qrf-wordmark span{color:var(--accent);}
+  .qrf-tag{
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .qrf-body{
+    display:grid;
+    grid-template-columns:1fr 1.15fr 1fr;
+    gap:0;
+  }
+  @media (max-width: 860px){
+    .qrf-body{grid-template-columns:1fr;}
+    .qrf-panel{border-right:none !important;border-bottom:1px solid var(--line);}
+  }
+  .qrf-panel{
+    padding:26px 24px;
+    border-right:1px solid var(--line);
+  }
+  .qrf-panel:last-child{border-right:none;}
+  .qrf-eyebrow{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:16px;
+  }
+  .qrf-field{margin-bottom:16px;}
+  .qrf-label{
+    display:block;font-size:12.5px;color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .qrf-input, .qrf-select{
+    width:100%;
+    background:var(--paper);
+    border:1px solid var(--line-strong);
+    color:var(--ink);
+    padding:9px 11px;
+    border-radius:6px;
+    font-size:14px;
+    font-family:inherit;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  .qrf-input:focus, .qrf-select:focus{border-color:var(--accent);}
+  .qrf-row{display:flex;gap:10px;}
+  .qrf-row > *{flex:1;}
+  .qrf-colorwrap{
+    display:flex;align-items:center;gap:10px;
+    background:var(--paper);
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    padding:6px 10px;
+  }
+  .qrf-colorwrap input[type=color]{
+    width:24px;height:24px;border:none;background:none;padding:0;cursor:pointer;
+  }
+  .qrf-colorwrap input[type=text]{
+    background:none;border:none;color:var(--ink);font-size:13px;
+    outline:none;width:100%;
+  }
+  .qrf-slider-label{
+    display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;
+  }
+  .qrf-slider-label b{color:var(--ink);font-weight:600;}
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:3px;border-radius:2px;
+    background:var(--line-strong);outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:var(--accent);cursor:pointer;border:2px solid var(--paper);
+    box-shadow:0 0 0 1px var(--line-strong);
+  }
+  .qrf-upload{
+    border:1px dashed var(--line-strong);
+    border-radius:6px;
+    padding:14px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:border-color .15s ease;
+    background:var(--paper);
+  }
+  .qrf-upload:hover{border-color:var(--accent);color:var(--accent);}
+  .qrf-check{
+    display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);margin-top:10px;
+  }
+  .qrf-check input{accent-color:var(--accent);}
+
+  .qrf-anvil{
+    display:flex;flex-direction:column;align-items:center;
+    padding-top:6px;
+    background:var(--paper);
+  }
+  .qrf-stage{
+    position:relative;
+    width:100%;
+    max-width:260px;
+    aspect-ratio:1/1;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:18px;
+  }
+  #qrf-canvas-holder{
+    width:78%;height:78%;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  #qrf-canvas-holder img, #qrf-canvas-holder canvas{
+    width:100%;height:100%;image-rendering:pixelated;border-radius:2px;
+  }
+  .qrf-logo-overlay{
+    position:absolute;
+    display:flex;align-items:center;justify-content:center;
+    background:#fff;
+    cursor:grab;
+    touch-action:none;
+    box-sizing:border-box;
+  }
+  .qrf-logo-overlay.qrf-dragging{cursor:grabbing;}
+  .qrf-logo-overlay:hover{outline:1px dashed var(--accent);outline-offset:2px;}
+  .qrf-logo-overlay img{width:100%;height:100%;object-fit:contain;pointer-events:none;}
+  .qrf-posgrid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+    width:72px;
+  }
+  .qrf-posgrid button{
+    width:100%;aspect-ratio:1/1;
+    background:var(--paper);border:1px solid var(--line-strong);border-radius:4px;
+    cursor:pointer;position:relative;padding:0;
+  }
+  .qrf-posgrid button:hover{border-color:var(--accent);}
+  .qrf-posgrid button.qrf-pos-active{background:var(--accent);border-color:var(--accent);}
+  .qrf-posgrid button::after{
+    content:'';position:absolute;top:50%;left:50%;width:4px;height:4px;border-radius:50%;
+    background:var(--ink-soft);transform:translate(-50%,-50%);
+  }
+  .qrf-posgrid button.qrf-pos-active::after{background:#fff;}
+  .qrf-shapegroup{display:flex;gap:6px;}
+  .qrf-shapegroup button{
+    flex:1;background:var(--paper);border:1px solid var(--line-strong);color:var(--ink-soft);
+    padding:8px 4px;border-radius:6px;cursor:pointer;font-size:12px;font-family:inherit;
+  }
+  .qrf-shapegroup button.qrf-shape-active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .qrf-status{
+    display:flex;align-items:center;gap:8px;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:20px;
+  }
+  .qrf-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);}
+  .qrf-downloads{width:100%;max-width:260px;display:flex;flex-direction:column;gap:8px;}
+  .qrf-btn{
+    background:var(--paper);
+    border:1px solid var(--line-strong);
+    color:var(--ink);
+    padding:11px 14px;
+    border-radius:6px;
+    font-size:13px;
+    cursor:pointer;
+    font-family:inherit;
+    display:flex;align-items:center;justify-content:space-between;
+    transition:all .15s ease;
+  }
+  .qrf-btn:hover{border-color:var(--accent);}
+  .qrf-btn-primary{
+    background:var(--accent);
+    border:1px solid var(--accent);
+    color:#fff;font-weight:600;
+    justify-content:center;
+  }
+  .qrf-btn-primary:hover{filter:brightness(1.05);}
+  .qrf-hint{
+    font-size:11.5px;color:var(--ink-soft);margin-top:14px;text-align:center;line-height:1.5;
+  }
+  .qrf-health{
+    margin-top:18px;width:100%;max-width:260px;
+    background:var(--canvas);border:1px solid var(--line);border-radius:8px;
+    padding:12px 14px;
+  }
+  .qrf-health-title{
+    font-size:12px;font-weight:600;color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .qrf-health-row{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;color:var(--ink);}
+  .qrf-health-ok{color:var(--ok);}
+  .qrf-health-warn{color:var(--accent);}
+</style>
+
+<div class="qrf-root">
+  <div class="qrf-topbar">
+    <div>
+      <div class="qrf-wordmark">QR<span>Forger</span></div>
+      <div class="qrf-tag" style="margin-top:2px;">forge your code · itisnow</div>
+    </div>
+    <div class="qrf-tag">v1.1 — bench build</div>
+  </div>
+
+  <div class="qrf-body">
+
+    <div class="qrf-panel">
+      <div class="qrf-eyebrow">Materials</div>
+
+      <div class="qrf-field">
+        <label class="qrf-label">Content</label>
+        <input class="qrf-input" id="qrf-content" placeholder="https://itisnow.net" value="https://itisnow.net"/>
+      </div>
+
+      <div class="qrf-field">
+        <label class="qrf-label">Foreground / Background</label>
+        <div class="qrf-row">
+          <div class="qrf-colorwrap">
+            <input type="color" id="qrf-fg" value="#1c1b19"/>
+            <input type="text" id="qrf-fg-text" value="#1c1b19"/>
+          </div>
+          <div class="qrf-colorwrap">
+            <input type="color" id="qrf-bg" value="#ffffff"/>
+            <input type="text" id="qrf-bg-text" value="#ffffff"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="qrf-field">
+        <div class="qrf-slider-label"><span>Size</span><b id="qrf-size-val">280px</b></div>
+        <input type="range" id="qrf-size" min="180" max="512" value="280" step="4"/>
+      </div>
+
+      <div class="qrf-field">
+        <label class="qrf-label">Error correction</label>
+        <select class="qrf-select" id="qrf-ecc">
+          <option value="L">L — Low (7%)</option>
+          <option value="M" selected>M — Medium (15%)</option>
+          <option value="Q">Q — Quartile (25%)</option>
+          <option value="H">H — High (30%) — best with a logo</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="qrf-panel qrf-anvil">
+      <div class="qrf-eyebrow" style="align-self:flex-start;">The Anvil</div>
+      <div class="qrf-stage">
+        <div id="qrf-canvas-holder"></div>
+      </div>
+      <div class="qrf-status"><span class="qrf-dot"></span> Live preview</div>
+
+      <div class="qrf-downloads">
+        <button class="qrf-btn qrf-btn-primary" id="qrf-download-png">Download PNG</button>
+        <button class="qrf-btn" id="qrf-download-svg">Download SVG (basic) <span>↓</span></button>
+      </div>
+
+      <div class="qrf-health">
+        <div class="qrf-health-title">Temper Check</div>
+        <div class="qrf-health-row"><span>Contrast</span><span id="qrf-h-contrast" class="qrf-health-ok">Good</span></div>
+        <div class="qrf-health-row"><span>Error correction</span><span id="qrf-h-ecc" class="qrf-health-ok">Medium</span></div>
+        <div class="qrf-health-row"><span>Logo coverage</span><span id="qrf-h-logo" class="qrf-health-ok">None</span></div>
+      </div>
+
+      <div class="qrf-hint">Drag the mark on the anvil to reposition it —<br/>dot/corner shaping and templates land next.</div>
+    </div>
+
+    <div class="qrf-panel">
+      <div class="qrf-eyebrow">Tools</div>
+
+      <div class="qrf-field">
+        <label class="qrf-label">Center mark (logo)</label>
+        <div class="qrf-upload" id="qrf-upload-zone">Drop or click to upload PNG / JPG / SVG</div>
+        <input type="file" id="qrf-logo-input" accept="image/*" style="display:none;"/>
+      </div>
+
+      <div id="qrf-logo-controls" style="display:none;">
+        <div class="qrf-field">
+          <div class="qrf-slider-label"><span>Mark size</span><b id="qrf-logo-size-val">20%</b></div>
+          <input type="range" id="qrf-logo-size" min="8" max="34" value="20"/>
+        </div>
+
+        <div class="qrf-field">
+          <div class="qrf-slider-label"><span>Plate padding</span><b id="qrf-logo-pad-val">10%</b></div>
+          <input type="range" id="qrf-logo-pad" min="0" max="30" value="10"/>
+        </div>
+
+        <div class="qrf-field">
+          <label class="qrf-label">Plate shape</label>
+          <div class="qrf-shapegroup">
+            <button type="button" data-shape="square" class="qrf-shape-active">■ Square</button>
+            <button type="button" data-shape="rounded">▢ Rounded</button>
+            <button type="button" data-shape="circle">● Circle</button>
+          </div>
+        </div>
+
+        <div class="qrf-field">
+          <label class="qrf-label">Position</label>
+          <div style="display:flex;align-items:center;gap:14px;">
+            <div class="qrf-posgrid" id="qrf-posgrid">
+              <button data-x="-32" data-y="-32"></button>
+              <button data-x="0" data-y="-32"></button>
+              <button data-x="32" data-y="-32"></button>
+              <button data-x="-32" data-y="0"></button>
+              <button data-x="0" data-y="0" class="qrf-pos-active"></button>
+              <button data-x="32" data-y="0"></button>
+              <button data-x="-32" data-y="32"></button>
+              <button data-x="0" data-y="32"></button>
+              <button data-x="32" data-y="32"></button>
+            </div>
+            <div style="font-size:10.5px;color:var(--steel-300);line-height:1.6;">
+              or drag the<br/>mark on the<br/>anvil directly
+            </div>
+          </div>
+        </div>
+
+        <div class="qrf-check">
+          <input type="checkbox" id="qrf-logo-bg" checked/>
+          <label for="qrf-logo-bg">White plate behind mark</label>
+        </div>
+        <div class="qrf-check">
+          <input type="checkbox" id="qrf-logo-border"/>
+          <label for="qrf-logo-border">Ember ring border</label>
+        </div>
+      </div>
+
+      <div class="qrf-field">
+        <button class="qrf-btn" id="qrf-logo-clear" style="width:100%;">Remove mark</button>
+      </div>
+
+      <div style="margin-top:26px;">
+        <div class="qrf-eyebrow">Coming to the forge</div>
+        <div style="font-size:12px;color:var(--steel-300);line-height:2;">
+          ▶ Dot &amp; corner styles<br/>
+          ▶ Gradients<br/>
+          ▶ Frames &amp; call-to-scan text<br/>
+          ▶ Wi-Fi / vCard / social types<br/>
+          ▶ Template gallery
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const content = document.getElementById('qrf-content');
+  const fg = document.getElementById('qrf-fg');
+  const fgText = document.getElementById('qrf-fg-text');
+  const bg = document.getElementById('qrf-bg');
+  const bgText = document.getElementById('qrf-bg-text');
+  const size = document.getElementById('qrf-size');
+  const sizeVal = document.getElementById('qrf-size-val');
+  const ecc = document.getElementById('qrf-ecc');
+  const holder = document.getElementById('qrf-canvas-holder');
+
+  const logoInput = document.getElementById('qrf-logo-input');
+  const uploadZone = document.getElementById('qrf-upload-zone');
+  const logoBgCheck = document.getElementById('qrf-logo-bg');
+  const logoBorderCheck = document.getElementById('qrf-logo-border');
+  const logoControls = document.getElementById('qrf-logo-controls');
+  const logoSize = document.getElementById('qrf-logo-size');
+  const logoSizeVal = document.getElementById('qrf-logo-size-val');
+  const logoPad = document.getElementById('qrf-logo-pad');
+  const logoPadVal = document.getElementById('qrf-logo-pad-val');
+  const logoClearBtn = document.getElementById('qrf-logo-clear');
+  const shapeButtons = document.querySelectorAll('.qrf-shapegroup button');
+  const posGrid = document.getElementById('qrf-posgrid');
+  const posButtons = posGrid.querySelectorAll('button');
+
+  const hContrast = document.getElementById('qrf-h-contrast');
+  const hEcc = document.getElementById('qrf-h-ecc');
+  const hLogo = document.getElementById('qrf-h-logo');
+
+  let logoDataUrl = null;
+  let qr = null;
+
+  let logoPos = {x:0, y:0};
+  let logoShape = 'square';
+
+  function eccName(v){
+    return {L:'Low', M:'Medium', Q:'Quartile', H:'High'}[v] || v;
+  }
+
+  function contrastRatio(hex1, hex2){
+    function lum(hex){
+      const c = hex.replace('#','');
+      const r = parseInt(c.substring(0,2),16)/255;
+      const g = parseInt(c.substring(2,4),16)/255;
+      const b = parseInt(c.substring(4,6),16)/255;
+      const f = x => x <= 0.03928 ? x/12.92 : Math.pow((x+0.055)/1.055, 2.4);
+      return 0.2126*f(r) + 0.7152*f(g) + 0.0722*f(b);
+    }
+    try{
+      const L1 = lum(hex1), L2 = lum(hex2);
+      const lighter = Math.max(L1,L2), darker = Math.min(L1,L2);
+      return (lighter+0.05)/(darker+0.05);
+    }catch(e){ return 21; }
+  }
+
+  function renderQR(){
+    holder.innerHTML = '';
+    const sizePx = parseInt(size.value,10);
+    qr = new QRCode(holder, {
+      text: content.value || ' ',
+      width: sizePx,
+      height: sizePx,
+      colorDark: fg.value,
+      colorLight: bg.value,
+      correctLevel: QRCode.CorrectLevel[ecc.value]
+    });
+
+    setTimeout(()=>{
+      if(logoDataUrl){
+        buildLogoOverlay(sizePx);
+      }
+      updateHealth();
+    }, 60);
+  }
+
+  function shapeRadius(dim){
+    if(logoShape === 'circle') return '50%';
+    if(logoShape === 'rounded') return Math.round(dim*0.22) + 'px';
+    return '2px';
+  }
+
+  function buildLogoOverlay(sizePx){
+    const pct = parseInt(logoSize.value,10)/100;
+    const dim = sizePx * pct;
+    const padPct = parseInt(logoPad.value,10)/100;
+
+    const cx = sizePx/2 + (logoPos.x/100)*sizePx;
+    const cy = sizePx/2 + (logoPos.y/100)*sizePx;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'qrf-logo-overlay';
+    overlay.id = 'qrf-live-logo';
+    overlay.style.width = dim + 'px';
+    overlay.style.height = dim + 'px';
+    overlay.style.left = (cx - dim/2) + 'px';
+    overlay.style.top = (cy - dim/2) + 'px';
+    overlay.style.background = logoBgCheck.checked ? '#fff' : 'transparent';
+    overlay.style.borderRadius = shapeRadius(dim);
+    overlay.style.padding = Math.round(dim*padPct) + 'px';
+    overlay.style.border = logoBorderCheck.checked ? '2px solid ' + fg.value : 'none';
+
+    const img = document.createElement('img');
+    img.src = logoDataUrl;
+    overlay.appendChild(img);
+    holder.style.position = 'relative';
+    holder.appendChild(overlay);
+
+    makeDraggable(overlay, sizePx);
+  }
+
+  function makeDraggable(el, sizePx){
+    let dragging = false, startX=0, startY=0, startPos={x:0,y:0};
+
+    function onDown(e){
+      dragging = true;
+      el.classList.add('qrf-dragging');
+      const pt = e.touches ? e.touches[0] : e;
+      startX = pt.clientX; startY = pt.clientY;
+      startPos = {x: logoPos.x, y: logoPos.y};
+      e.preventDefault();
+    }
+    function onMove(e){
+      if(!dragging) return;
+      const pt = e.touches ? e.touches[0] : e;
+      const dxPx = pt.clientX - startX;
+      const dyPx = pt.clientY - startY;
+      const limit = 40;
+      logoPos.x = clamp(startPos.x + (dxPx/sizePx)*100, -limit, limit);
+      logoPos.y = clamp(startPos.y + (dyPx/sizePx)*100, -limit, limit);
+      clearPosGridActive();
+      renderQR();
+    }
+    function onUp(){
+      if(!dragging) return;
+      dragging = false;
+      const live = document.getElementById('qrf-live-logo');
+      if(live) live.classList.remove('qrf-dragging');
+    }
+
+    el.addEventListener('mousedown', onDown);
+    el.addEventListener('touchstart', onDown, {passive:false});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+  }
+
+  function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+  function clearPosGridActive(){
+    posButtons.forEach(b => b.classList.remove('qrf-pos-active'));
+  }
+
+  function updateHealth(){
+    const ratio = contrastRatio(fg.value, bg.value);
+    if(ratio >= 4.5){
+      hContrast.textContent = 'Good'; hContrast.className='qrf-health-ok';
+    } else if(ratio >= 2.5){
+      hContrast.textContent = 'Low'; hContrast.className='qrf-health-warn';
+    } else {
+      hContrast.textContent = 'Too low'; hContrast.className='qrf-health-warn';
+    }
+
+    hEcc.textContent = eccName(ecc.value);
+    hEcc.className = (ecc.value === 'L') ? 'qrf-health-warn' : 'qrf-health-ok';
+
+    if(logoDataUrl){
+      const pct = parseInt(logoSize.value,10);
+      const offCenter = Math.max(Math.abs(logoPos.x), Math.abs(logoPos.y));
+
+      const nearCorner = offCenter > 24 && pct > 16;
+      if(nearCorner){
+        hLogo.textContent = 'Over finder zone';
+        hLogo.className = 'qrf-health-warn';
+      } else if(pct > 25 && ecc.value !== 'H'){
+        hLogo.textContent = pct + '% of code';
+        hLogo.className = 'qrf-health-warn';
+      } else {
+        hLogo.textContent = pct + '% of code';
+        hLogo.className = 'qrf-health-ok';
+      }
+    } else {
+      hLogo.textContent = 'None';
+      hLogo.className = 'qrf-health-ok';
+    }
+  }
+
+  fg.addEventListener('input', ()=>{ fgText.value = fg.value; renderQR(); });
+  bg.addEventListener('input', ()=>{ bgText.value = bg.value; renderQR(); });
+  fgText.addEventListener('change', ()=>{ if(/^#[0-9A-Fa-f]{6}$/.test(fgText.value)){ fg.value = fgText.value; renderQR(); } });
+  bgText.addEventListener('change', ()=>{ if(/^#[0-9A-Fa-f]{6}$/.test(bgText.value)){ bg.value = bgText.value; renderQR(); } });
+
+  content.addEventListener('input', renderQR);
+  ecc.addEventListener('change', renderQR);
+  size.addEventListener('input', ()=>{ sizeVal.textContent = size.value + 'px'; renderQR(); });
+  logoBgCheck.addEventListener('change', renderQR);
+  logoBorderCheck.addEventListener('change', renderQR);
+  logoSize.addEventListener('input', ()=>{ logoSizeVal.textContent = logoSize.value + '%'; renderQR(); });
+  logoPad.addEventListener('input', ()=>{ logoPadVal.textContent = logoPad.value + '%'; renderQR(); });
+
+  shapeButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      shapeButtons.forEach(b=>b.classList.remove('qrf-shape-active'));
+      btn.classList.add('qrf-shape-active');
+      logoShape = btn.dataset.shape;
+      renderQR();
+    });
+  });
+
+  posButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      clearPosGridActive();
+      btn.classList.add('qrf-pos-active');
+      logoPos = {x: parseInt(btn.dataset.x,10), y: parseInt(btn.dataset.y,10)};
+      renderQR();
+    });
+  });
+
+  uploadZone.addEventListener('click', ()=> logoInput.click());
+  logoInput.addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      logoDataUrl = ev.target.result;
+      logoPos = {x:0, y:0};
+      logoShape = 'square';
+      clearPosGridActive();
+      posGrid.querySelector('[data-x="0"][data-y="0"]').classList.add('qrf-pos-active');
+      shapeButtons.forEach(b=>b.classList.remove('qrf-shape-active'));
+      document.querySelector('.qrf-shapegroup [data-shape="square"]').classList.add('qrf-shape-active');
+      logoControls.style.display = 'block';
+      uploadZone.textContent = file.name + ' — click to change';
+      renderQR();
+    };
+    reader.readAsDataURL(file);
+  });
+  logoClearBtn.addEventListener('click', ()=>{
+    logoDataUrl = null;
+    logoInput.value = '';
+    logoPos = {x:0, y:0};
+    logoControls.style.display = 'none';
+    uploadZone.textContent = 'Drop or click to upload PNG / JPG / SVG';
+    renderQR();
+  });
+
+  document.getElementById('qrf-download-png').addEventListener('click', ()=>{
+    setTimeout(()=>{
+      const canvas = holder.querySelector('canvas');
+      const img = holder.querySelector('img');
+      let sourceCanvas = canvas;
+      if(!sourceCanvas && img){
+        sourceCanvas = document.createElement('canvas');
+        sourceCanvas.width = img.width; sourceCanvas.height = img.height;
+        sourceCanvas.getContext('2d').drawImage(img,0,0);
+      }
+      if(!sourceCanvas) return;
+
+      const out = document.createElement('canvas');
+      out.width = sourceCanvas.width; out.height = sourceCanvas.height;
+      const ctx = out.getContext('2d');
+      ctx.drawImage(sourceCanvas,0,0);
+
+      const finish = ()=>{
+        const link = document.createElement('a');
+        link.download = 'qrforger-code.png';
+        link.href = out.toDataURL('image/png');
+        link.click();
+      };
+
+      if(logoDataUrl){
+        const logoImg = new Image();
+        logoImg.onload = ()=>{
+          const sizePx = out.width;
+          const pct = parseInt(logoSize.value,10)/100;
+          const padPct = parseInt(logoPad.value,10)/100;
+          const dim = sizePx * pct;
+          const cx = sizePx/2 + (logoPos.x/100)*sizePx;
+          const cy = sizePx/2 + (logoPos.y/100)*sizePx;
+          const px = cx - dim/2, py = cy - dim/2;
+          const pad = dim * padPct;
+
+          function plateClip(){
+            ctx.beginPath();
+            if(logoShape === 'circle'){
+              ctx.arc(cx, cy, dim/2, 0, Math.PI*2);
+            } else {
+              const r = logoShape === 'rounded' ? dim*0.22 : dim*0.03;
+              const x0=px, y0=py, w=dim, h=dim;
+              ctx.moveTo(x0+r, y0);
+              ctx.arcTo(x0+w, y0, x0+w, y0+h, r);
+              ctx.arcTo(x0+w, y0+h, x0, y0+h, r);
+              ctx.arcTo(x0, y0+h, x0, y0, r);
+              ctx.arcTo(x0, y0, x0+w, y0, r);
+            }
+            ctx.closePath();
+          }
+
+          if(logoBgCheck.checked){
+            ctx.save();
+            plateClip();
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            ctx.restore();
+          }
+
+          if(logoBorderCheck.checked){
+            ctx.save();
+            plateClip();
+            ctx.lineWidth = Math.max(2, dim*0.02);
+            ctx.strokeStyle = fg.value;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          ctx.save();
+          plateClip();
+          ctx.clip();
+          ctx.drawImage(logoImg, px+pad, py+pad, dim-pad*2, dim-pad*2);
+          ctx.restore();
+
+          finish();
+        };
+        logoImg.src = logoDataUrl;
+      } else {
+        finish();
+      }
+    }, 80);
+  });
+
+  document.getElementById('qrf-download-svg').addEventListener('click', ()=>{
+    alert('SVG export ships in the next pass — the qr-code-styling library (V1 tech stack) generates true vector output natively, unlike this bench prototype\'s canvas-based renderer.');
+  });
+
+  renderQR();
+})();
+</script>
