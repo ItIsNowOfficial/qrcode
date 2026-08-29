@@ -733,8 +733,16 @@
             ctx.strokeStyle = fg.value;
             ctx.stroke(); ctx.restore();
           }
+          // fit the logo into its inner box preserving aspect ratio (mirrors
+          // the live preview's object-fit: contain) instead of stretching it
+          const inner = dim - pad*2;
+          const natW = logoImg.naturalWidth || 1, natH = logoImg.naturalHeight || 1;
+          const fitScale = Math.min(inner/natW, inner/natH);
+          const fitW = natW*fitScale, fitH = natH*fitScale;
+          const fitX = px + pad + (inner-fitW)/2;
+          const fitY = py + pad + (inner-fitH)/2;
           ctx.save(); plateClip(); ctx.clip();
-          ctx.drawImage(logoImg, px+pad, py+pad, dim-pad*2, dim-pad*2);
+          ctx.drawImage(logoImg, fitX, fitY, fitW, fitH);
           ctx.restore();
           finish();
         };
