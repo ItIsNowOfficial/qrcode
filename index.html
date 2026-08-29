@@ -1,3 +1,5 @@
+<title>QRforgery — QR Code Generator & Customizer | ItIsNow</title>
+<meta name="description" content="Create and customize QR codes free, with live preview, custom colors, dot and corner styles, and a draggable logo mark. Download as PNG or SVG. By ItIsNow.">
 <script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
 <style>
   :root{
@@ -132,10 +134,10 @@
 <div class="qrf-root">
   <div class="qrf-topbar">
     <div>
-      <div class="qrf-wordmark">QR<span>Forger</span></div>
-      <div class="qrf-tag" style="margin-top:2px;">forge your code · itisnow</div>
+      <div class="qrf-wordmark">QR<span>forgery</span></div>
+      <div class="qrf-tag" style="margin-top:2px;">by itisnow</div>
     </div>
-    <div class="qrf-tag">v1.2 — bench build</div>
+    <div class="qrf-tag">v1.2</div>
   </div>
 
   <div class="qrf-body">
@@ -733,8 +735,6 @@
             ctx.strokeStyle = fg.value;
             ctx.stroke(); ctx.restore();
           }
-          // fit the logo into its inner box preserving aspect ratio (mirrors
-          // the live preview's object-fit: contain) instead of stretching it
           const inner = dim - pad*2;
           const natW = logoImg.naturalWidth || 1, natH = logoImg.naturalHeight || 1;
           const fitScale = Math.min(inner/natW, inner/natH);
